@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pre-Training Assessment – Corporate Governance, Money Laundering & KYC Training for NBFCs</title>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -27,26 +28,10 @@
             padding: 40px;
             text-align: center;
         }
-        .header h1 {
-            font-size: 1.6em;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        .header .date {
-            font-size: 1em;
-            opacity: 0.9;
-        }
-        .header .prepared-for {
-            margin-top: 12px;
-            font-size: 0.85em;
-            opacity: 0.85;
-        }
-        .header .prepared-for strong {
-            display: block;
-            font-size: 1.1em;
-            margin-top: 4px;
-            opacity: 1;
-        }
+        .header h1 { font-size: 1.6em; font-weight: 600; margin-bottom: 8px; }
+        .header .date { font-size: 1em; opacity: 0.9; }
+        .header .prepared-for { margin-top: 12px; font-size: 0.85em; opacity: 0.85; }
+        .header .prepared-for strong { display: block; font-size: 1.1em; margin-top: 4px; opacity: 1; }
         .sub-header {
             display: flex;
             justify-content: space-between;
@@ -55,8 +40,50 @@
             font-size: 0.85em;
             color: #555;
             border-bottom: 2px solid #c5cae9;
+            flex-wrap: wrap;
+            gap: 8px;
         }
         .content { padding: 30px 40px; }
+        .user-form {
+            background: #f5f7ff;
+            border: 2px solid #c5cae9;
+            border-radius: 10px;
+            padding: 24px 28px;
+            margin-bottom: 30px;
+        }
+        .user-form h3 {
+            color: #1a237e;
+            margin-bottom: 16px;
+            font-size: 1.1em;
+        }
+        .form-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.85em;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 4px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95em;
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #1a237e;
+        }
         .question {
             margin-bottom: 28px;
             padding: 20px;
@@ -65,29 +92,23 @@
             border: 1px solid #e0e0e0;
             transition: background 0.3s, border-color 0.3s;
         }
-        .question.correct {
-            background: #e8f5e9;
-            border-color: #66bb6a;
+        .question.correct { background: #e8f5e9; border-color: #66bb6a; }
+        .question.incorrect { background: #ffebee; border-color: #ef5350; }
+        .question.unanswered { background: #fff8e1; border-color: #ffa726; }
+        .q-number { font-weight: 700; color: #1a237e; margin-bottom: 8px; font-size: 0.9em; }
+        .q-topic {
+            display: inline-block;
+            font-size: 0.75em;
+            background: #e0e0e0;
+            padding: 2px 10px;
+            border-radius: 10px;
+            color: #555;
+            margin-left: 8px;
+            font-weight: 500;
         }
-        .question.incorrect {
-            background: #ffebee;
-            border-color: #ef5350;
-        }
-        .question.unanswered {
-            background: #fff8e1;
-            border-color: #ffa726;
-        }
-        .q-number {
-            font-weight: 700;
-            color: #1a237e;
-            margin-bottom: 8px;
-            font-size: 1em;
-        }
-        .q-text {
-            font-weight: 600;
-            margin-bottom: 12px;
-            font-size: 1em;
-        }
+        .question.correct .q-topic { background: #a5d6a7; color: #2e7d32; }
+        .question.incorrect .q-topic { background: #ef9a9a; color: #c62828; }
+        .q-text { font-weight: 600; margin-bottom: 12px; font-size: 1em; }
         .options { display: flex; flex-direction: column; gap: 6px; }
         .options label {
             display: flex;
@@ -115,9 +136,7 @@
         }
         .question.correct .feedback.correct-fb,
         .question.incorrect .feedback.incorrect-fb,
-        .question.unanswered .feedback.unanswered-fb {
-            display: block;
-        }
+        .question.unanswered .feedback.unanswered-fb { display: block; }
         .feedback.correct-fb { background: #c8e6c9; color: #2e7d32; }
         .feedback.incorrect-fb { background: #ffcdd2; color: #c62828; }
         .feedback.unanswered-fb { background: #fff9c4; color: #f57f17; }
@@ -173,29 +192,18 @@
             box-shadow: 0 4px 16px rgba(26,35,126,0.3);
         }
         .score-circle span { font-size: 0.4em; font-weight: 400; opacity: 0.85; }
-        .email-section {
-            margin-top: 24px;
+        .email-section { margin-top: 24px; display: none; }
+        .email-section.show { display: block; }
+        .email-status {
+            margin-top: 12px;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: 500;
             display: none;
         }
-        .email-section.show { display: block; }
-        .email-section input[type="email"] {
-            padding: 12px 16px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 1em;
-            width: 300px;
-            max-width: 100%;
-            margin-right: 10px;
-        }
-        .email-section input[type="email"]:focus {
-            outline: none;
-            border-color: #1a237e;
-        }
-        .note {
-            margin-top: 16px;
-            font-size: 0.85em;
-            color: #888;
-        }
+        .email-status.success { display: block; background: #c8e6c9; color: #2e7d32; }
+        .email-status.error { display: block; background: #ffcdd2; color: #c62828; }
+        .email-status.sending { display: block; background: #fff9c4; color: #f57f17; }
         .footer {
             text-align: center;
             padding: 20px 40px;
@@ -212,7 +220,6 @@
             .content { padding: 16px; }
             .question { padding: 14px; }
             .btn { width: 100%; }
-            .email-section input[type="email"] { width: 100%; margin: 0 0 10px; }
         }
     </style>
 </head>
@@ -246,70 +253,56 @@
 </div>
 
 <script>
+emailjs.init('3ItaOCNwSCB3lqzvO');
+
 const questions = [
-    {
-        q: 'Which legislation provides the principal framework for preventing money laundering in India?',
-        options: ['Companies Act, 2013', 'FEMA, 1999', 'Prevention of Money Laundering Act (PMLA), 2002', 'SEBI Act, 1992'],
-        answer: 2
-    },
-    {
-        q: 'Who is primarily responsible for overall compliance with Chapter IV of the PMLA?',
-        options: ['Internal Auditor', 'Chief Financial Officer', 'Designated Director', 'Company Secretary'],
-        answer: 2
-    },
-    {
-        q: 'What is the key purpose of KYC?',
-        options: ['Increase lending volumes', 'Prevent money laundering and identify customers', 'Improve profitability', 'Reduce taxation'],
-        answer: 1
-    },
-    {
-        q: 'STR stands for:',
-        options: ['Standard Transaction Report', 'Suspicious Transaction Report', 'Systematic Transaction Review', 'Statutory Transaction Register'],
-        answer: 1
-    },
-    {
-        q: 'Cash transactions exceeding what amount are reportable under PMLA requirements?',
-        options: ['₹5 lakh', '₹7 lakh', '₹10 lakh', '₹25 lakh'],
-        answer: 2
-    },
-    {
-        q: 'What does "Malus" mean in compensation practices?',
-        options: ['Recovery of bonus already paid', 'Reduction or cancellation of deferred remuneration before vesting/payment', 'Increment in salary', 'Performance-linked incentive'],
-        answer: 1
-    },
-    {
-        q: 'How often should ML/TF risk assessments be reviewed at a minimum?',
-        options: ['Monthly', 'Quarterly', 'Annually', 'Once every three years'],
-        answer: 2
-    },
-    {
-        q: 'Under the Draft RBI Governance Directions, 2026, which control functions are specifically recognized?',
-        options: ['Finance and Treasury', 'Compliance, Risk Management, and Internal Audit', 'Operations and HR', 'Marketing and Business Development'],
-        answer: 1
-    },
-    {
-        q: 'Under the proposed Draft Directions, CCO, CRO, and HIA should meet the Board/Audit Committee:',
-        options: ['Once a year', 'Half-yearly', 'Quarterly without senior management present', 'Only when requested'],
-        answer: 2
-    },
-    {
-        q: 'What is the objective of customer risk categorization?',
-        options: ['Determine pricing only', 'Classify customers based on ML/TF risk and apply appropriate due diligence', 'Increase customer onboarding speed', 'Reduce documentation requirements'],
-        answer: 1
-    }
+    { q: 'Which legislation provides the principal framework for preventing money laundering in India?', options: ['Companies Act, 2013', 'FEMA, 1999', 'Prevention of Money Laundering Act (PMLA), 2002', 'SEBI Act, 1992'], answer: 2, topic: 'PMLA/KYC Framework' },
+    { q: 'Who is primarily responsible for overall compliance with Chapter IV of the PMLA?', options: ['Internal Auditor', 'Chief Financial Officer', 'Designated Director', 'Company Secretary'], answer: 2, topic: 'Governance & Compliance Structure' },
+    { q: 'What is the key purpose of KYC?', options: ['Increase lending volumes', 'Prevent money laundering and identify customers', 'Improve profitability', 'Reduce taxation'], answer: 1, topic: 'PMLA/KYC Framework' },
+    { q: 'STR stands for:', options: ['Standard Transaction Report', 'Suspicious Transaction Report', 'Systematic Transaction Review', 'Statutory Transaction Register'], answer: 1, topic: 'PMLA/KYC Framework' },
+    { q: 'Cash transactions exceeding what amount are reportable under PMLA requirements?', options: ['₹5 lakh', '₹7 lakh', '₹10 lakh', '₹25 lakh'], answer: 2, topic: 'PMLA/KYC Framework' },
+    { q: 'What does "Malus" mean in compensation practices?', options: ['Recovery of bonus already paid', 'Reduction or cancellation of deferred remuneration before vesting/payment', 'Increment in salary', 'Performance-linked incentive'], answer: 1, topic: 'Governance & Compliance Structure' },
+    { q: 'How often should ML/TF risk assessments be reviewed at a minimum?', options: ['Monthly', 'Quarterly', 'Annually', 'Once every three years'], answer: 2, topic: 'Risk Management Practices' },
+    { q: 'Under the Draft RBI Governance Directions, 2026, which control functions are specifically recognized?', options: ['Finance and Treasury', 'Compliance, Risk Management, and Internal Audit', 'Operations and HR', 'Marketing and Business Development'], answer: 1, topic: 'RBI Regulatory Directions' },
+    { q: 'Under the proposed Draft Directions, CCO, CRO, and HIA should meet the Board/Audit Committee:', options: ['Once a year', 'Half-yearly', 'Quarterly without senior management present', 'Only when requested'], answer: 2, topic: 'RBI Regulatory Directions' },
+    { q: 'What is the objective of customer risk categorization?', options: ['Determine pricing only', 'Classify customers based on ML/TF risk and apply appropriate due diligence', 'Increase customer onboarding speed', 'Reduce documentation requirements'], answer: 1, topic: 'Risk Management Practices' }
 ];
 
 let submitted = false;
 let userAnswers = new Array(questions.length).fill(null);
-
 const assessmentEl = document.getElementById('assessment');
 
 function render() {
     let html = '';
+
+    html += `<div class="user-form" id="user-form">
+        <h3>Participant Details</h3>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="user-name">Full Name</label>
+                <input type="text" id="user-name" placeholder="e.g. Rahul Sharma" ${submitted ? 'disabled' : ''}>
+            </div>
+            <div class="form-group">
+                <label for="user-email">Email Address</label>
+                <input type="email" id="user-email" placeholder="e.g. rahul@example.com" ${submitted ? 'disabled' : ''}>
+            </div>
+        </div>
+        <div class="form-row" style="margin-top:12px;">
+            <div class="form-group">
+                <label for="user-role">Designation</label>
+                <input type="text" id="user-role" placeholder="e.g. Compliance Officer" ${submitted ? 'disabled' : ''}>
+            </div>
+            <div class="form-group">
+                <label for="user-company">Organisation</label>
+                <input type="text" id="user-company" placeholder="e.g. Vama Sundari Investments" ${submitted ? 'disabled' : ''}>
+            </div>
+        </div>
+    </div>`;
+
     questions.forEach((q, i) => {
         const selected = userAnswers[i];
         html += `<div class="question" id="q-${i}">
-            <div class="q-number">Question ${i + 1} of ${questions.length}</div>
+            <div class="q-number">Question ${i + 1} <span class="q-topic">${q.topic}</span></div>
             <div class="q-text">${q.q}</div>
             <div class="options">`;
         q.options.forEach((opt, oi) => {
@@ -360,7 +353,58 @@ function updateAnsweredCount() {
     document.getElementById('answered-count').innerHTML = `Answered: <strong>${count}/${questions.length}</strong>`;
 }
 
+function getReadinessLevel(score, total) {
+    const pct = score / total;
+    if (pct === 1) return 'Advanced';
+    if (pct >= 0.8) return 'Proficient';
+    if (pct >= 0.7) return 'Adequate (Pass)';
+    if (pct >= 0.5) return 'Needs Development';
+    return 'Beginner';
+}
+
+function buildTopicSummary() {
+    const topics = {};
+    questions.forEach((q, i) => {
+        if (!topics[q.topic]) topics[q.topic] = { correct: 0, total: 0, concerns: [] };
+        topics[q.topic].total++;
+        if (userAnswers[i] === q.answer) {
+            topics[q.topic].correct++;
+        } else {
+            topics[q.topic].concerns.push(`Q${i+1}: ${q.q}`);
+        }
+    });
+
+    let summaryLines = [];
+    let concernsLines = [];
+    for (const [topic, data] of Object.entries(topics)) {
+        const pct = Math.round((data.correct / data.total) * 100);
+        summaryLines.push(`${topic}: ${data.correct}/${data.total} (${pct}%)`);
+        if (data.concerns.length > 0) {
+            concernsLines.push(`${topic}:`);
+            data.concerns.forEach(c => concernsLines.push(`  - ${c}`));
+        }
+    }
+    if (concernsLines.length === 0) {
+        concernsLines.push('No specific concerns — all topics well understood.');
+    }
+
+    return {
+        topic_summary: summaryLines.join('\n'),
+        concerns: concernsLines.join('\n')
+    };
+}
+
 function submitQuiz() {
+    const name = document.getElementById('user-name')?.value?.trim();
+    const email = document.getElementById('user-email')?.value?.trim();
+    const role = document.getElementById('user-role')?.value?.trim();
+    const company = document.getElementById('user-company')?.value?.trim();
+
+    if (!name || !email || !role || !company) {
+        alert('Please fill in all participant details (Name, Email, Designation, Organisation) before submitting.');
+        return;
+    }
+
     const unanswered = userAnswers.some(a => a === null);
     if (unanswered) {
         if (!confirm('You have unanswered questions. Are you sure you want to submit?')) return;
@@ -411,45 +455,66 @@ function showResults(score) {
     const total = questions.length;
     const pct = Math.round((score / total) * 100);
     const passed = score >= 7;
-
-    let emailBody = `Pre-Training Assessment Results\n`;
-    emailBody += `================================\n`;
-    emailBody += `Date: 23rd July 2026\n`;
-    emailBody += `Training: Corporate Governance, Money Laundering & KYC Training for NBFCs\n`;
-    emailBody += `Prepared for: Vama Sundari Investments (Delhi) Private Limited and HCL Capital Private Limited\n`;
-    emailBody += `Prepared by: Aumyaa Consulting Services LLP\n\n`;
-    emailBody += `Score: ${score}/${total} (${pct}%)\n`;
-    emailBody += `Result: ${passed ? 'PASSED' : 'FAILED'}\n\n`;
-    emailBody += `Question-wise Breakdown:\n`;
-    emailBody += `------------------------\n`;
-    questions.forEach((q, i) => {
-        const ans = userAnswers[i];
-        const isCorrect = ans === q.answer;
-        const status = ans === null ? 'Not Answered' : (isCorrect ? 'Correct' : 'Incorrect');
-        const userAnsText = ans !== null ? q.options[ans] : '—';
-        emailBody += `\nQ${i+1}. ${status}\n`;
-        emailBody += `   Your answer: ${userAnsText}\n`;
-        emailBody += `   Correct answer: ${q.options[q.answer]}\n`;
-    });
-    emailBody += `\n------------------------\n`;
-    emailBody += `Assessment completed on: ${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}`;
-
-    const encodedBody = encodeURIComponent(emailBody);
+    const level = getReadinessLevel(score, total);
 
     resultsEl.className = 'results show';
     resultsEl.innerHTML = `
         <div class="score-circle">${score}<span>/ ${total}</span></div>
         <h2 style="margin-bottom:6px;">${passed ? 'Congratulations!' : 'Needs Improvement'}</h2>
         <p style="margin-bottom:4px;font-size:1.1em;">You scored <strong>${score}/${total}</strong> (${pct}%)</p>
+        <p style="margin-bottom:4px;font-size:1em;color:#1a237e;">Readiness Level: <strong>${level}</strong></p>
         <p style="margin-bottom:20px;font-size:0.95em;color:#666;">
             ${passed ? 'You have passed the pre-training assessment.' : 'A score of 7/10 (70%) is required to pass.'}
         </p>
         <div class="email-section show">
             <p style="margin-bottom:12px;font-weight:600;">Email Your Results</p>
-            <a href="mailto:?subject=${encodeURIComponent('Pre-Training Assessment Results – Pre, 23 July 2026')}&body=${encodedBody}" class="btn btn-success">Send Results via Email</a>
-            <div class="note">Clicking above will open your default email client with results pre-filled.</div>
+            <button class="btn btn-success" onclick="sendEmail(${score}, ${pct}, '${level}')">Send Results via Email</button>
+            <div class="email-status" id="email-status"></div>
+            <div class="note" style="margin-top:12px;font-size:0.85em;color:#888;">
+                Results will be sent via EmailJS to the email address you provided.
+            </div>
         </div>
     `;
+}
+
+function sendEmail(score, pct, level) {
+    const statusEl = document.getElementById('email-status');
+    const name = document.getElementById('user-name')?.value?.trim();
+    const email = document.getElementById('user-email')?.value?.trim();
+    const role = document.getElementById('user-role')?.value?.trim();
+    const company = document.getElementById('user-company')?.value?.trim();
+    const total = questions.length;
+
+    const { topic_summary, concerns } = buildTopicSummary();
+
+    const templateParams = {
+        to_name: name,
+        to_email: email,
+        role: role,
+        company: company,
+        date: '23rd July 2026',
+        score: score,
+        score_max: total,
+        score_pct: pct + '%',
+        level: level,
+        topic_summary: topic_summary,
+        concerns: concerns,
+        training_date: '23rd July 2026'
+    };
+
+    statusEl.className = 'email-status sending';
+    statusEl.textContent = 'Sending email...';
+
+    emailjs.send('service_clu2ken', 'template_2jejcow', templateParams)
+        .then(() => {
+            statusEl.className = 'email-status success';
+            statusEl.textContent = 'Email sent successfully! Check your inbox.';
+        })
+        .catch((err) => {
+            statusEl.className = 'email-status error';
+            statusEl.textContent = 'Failed to send email. Please try again or contact support. Error: ' + (err.text || err.message || 'Unknown');
+            console.error('EmailJS error:', err);
+        });
 }
 
 function resetQuiz() {

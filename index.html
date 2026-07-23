@@ -270,6 +270,7 @@ const questions = [
 
 let submitted = false;
 let userAnswers = new Array(questions.length).fill(null);
+const userDetails = { name: '', email: '', role: '', company: '' };
 const assessmentEl = document.getElementById('assessment');
 
 function render() {
@@ -280,21 +281,21 @@ function render() {
         <div class="form-row">
             <div class="form-group">
                 <label for="user-name">Full Name</label>
-                <input type="text" id="user-name" placeholder="e.g. Rahul Sharma" ${submitted ? 'disabled' : ''}>
+                <input type="text" id="user-name" placeholder="e.g. Rahul Sharma" value="${userDetails.name}" ${submitted ? 'disabled' : ''}>
             </div>
             <div class="form-group">
                 <label for="user-email">Email Address</label>
-                <input type="email" id="user-email" placeholder="e.g. rahul@example.com" ${submitted ? 'disabled' : ''}>
+                <input type="email" id="user-email" placeholder="e.g. rahul@example.com" value="${userDetails.email}" ${submitted ? 'disabled' : ''}>
             </div>
         </div>
         <div class="form-row" style="margin-top:12px;">
             <div class="form-group">
                 <label for="user-role">Designation</label>
-                <input type="text" id="user-role" placeholder="e.g. Compliance Officer" ${submitted ? 'disabled' : ''}>
+                <input type="text" id="user-role" placeholder="e.g. Compliance Officer" value="${userDetails.role}" ${submitted ? 'disabled' : ''}>
             </div>
             <div class="form-group">
                 <label for="user-company">Organisation</label>
-                <input type="text" id="user-company" placeholder="e.g. Vama Sundari Investments" ${submitted ? 'disabled' : ''}>
+                <input type="text" id="user-company" placeholder="e.g. Vama Sundari Investments" value="${userDetails.company}" ${submitted ? 'disabled' : ''}>
             </div>
         </div>
     </div>`;
@@ -395,15 +396,16 @@ function buildTopicSummary() {
 }
 
 function submitQuiz() {
-    const name = document.getElementById('user-name')?.value?.trim();
-    const email = document.getElementById('user-email')?.value?.trim();
-    const role = document.getElementById('user-role')?.value?.trim();
-    const company = document.getElementById('user-company')?.value?.trim();
+    userDetails.name = document.getElementById('user-name')?.value?.trim() || '';
+    userDetails.email = document.getElementById('user-email')?.value?.trim() || '';
+    userDetails.role = document.getElementById('user-role')?.value?.trim() || '';
+    userDetails.company = document.getElementById('user-company')?.value?.trim() || '';
 
-    if (!name || !email || !role || !company) {
+    if (!userDetails.name || !userDetails.email || !userDetails.role || !userDetails.company) {
         alert('Please fill in all participant details (Name, Email, Designation, Organisation) before submitting.');
         return;
     }
+
 
     const unanswered = userAnswers.some(a => a === null);
     if (unanswered) {
@@ -479,19 +481,15 @@ function showResults(score) {
 
 function sendEmail(score, pct, level) {
     const statusEl = document.getElementById('email-status');
-    const name = document.getElementById('user-name')?.value?.trim();
-    const email = document.getElementById('user-email')?.value?.trim();
-    const role = document.getElementById('user-role')?.value?.trim();
-    const company = document.getElementById('user-company')?.value?.trim();
     const total = questions.length;
 
     const { topic_summary, concerns } = buildTopicSummary();
 
     const templateParams = {
-        to_name: name,
-        to_email: email,
-        role: role,
-        company: company,
+        to_name: userDetails.name,
+        to_email: userDetails.email,
+        role: userDetails.role,
+        company: userDetails.company,
         date: '23rd July 2026',
         score: score,
         score_max: total,

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pre-Training Assessment – Corporate Governance, Money Laundering & KYC Training for NBFCs</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+            color: #fff;
+            padding: 40px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 1.6em;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .header .date {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+        .header .prepared-for {
+            margin-top: 12px;
+            font-size: 0.85em;
+            opacity: 0.85;
+        }
+        .header .prepared-for strong {
+            display: block;
+            font-size: 1.1em;
+            margin-top: 4px;
+            opacity: 1;
+        }
+        .sub-header {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px 40px;
+            background: #e8eaf6;
+            font-size: 0.85em;
+            color: #555;
+            border-bottom: 2px solid #c5cae9;
+        }
+        .content { padding: 30px 40px; }
+        .question {
+            margin-bottom: 28px;
+            padding: 20px;
+            border-radius: 8px;
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        .question.correct {
+            background: #e8f5e9;
+            border-color: #66bb6a;
+        }
+        .question.incorrect {
+            background: #ffebee;
+            border-color: #ef5350;
+        }
+        .question.unanswered {
+            background: #fff8e1;
+            border-color: #ffa726;
+        }
+        .q-number {
+            font-weight: 700;
+            color: #1a237e;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+        .q-text {
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 1em;
+        }
+        .options { display: flex; flex-direction: column; gap: 6px; }
+        .options label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.95em;
+        }
+        .options label:hover { background: #f5f5f5; border-color: #bbb; }
+        .options input[type="radio"] { accent-color: #1a237e; }
+        .options label.selected { background: #c5cae9; border-color: #1a237e; }
+        .question.correct .options label.selected { background: #a5d6a7; border-color: #43a047; }
+        .question.incorrect .options label.selected { background: #ef9a9a; border-color: #e53935; }
+        .feedback {
+            margin-top: 10px;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            display: none;
+            font-weight: 500;
+        }
+        .question.correct .feedback.correct-fb,
+        .question.incorrect .feedback.incorrect-fb,
+        .question.unanswered .feedback.unanswered-fb {
+            display: block;
+        }
+        .feedback.correct-fb { background: #c8e6c9; color: #2e7d32; }
+        .feedback.incorrect-fb { background: #ffcdd2; color: #c62828; }
+        .feedback.unanswered-fb { background: #fff9c4; color: #f57f17; }
+        .actions {
+            text-align: center;
+            padding: 30px 0 10px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
+        }
+        .btn {
+            padding: 14px 36px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary { background: #1a237e; color: #fff; }
+        .btn-primary:hover { background: #283593; transform: translateY(-1px); }
+        .btn-secondary { background: #e0e0e0; color: #333; }
+        .btn-secondary:hover { background: #bdbdbd; }
+        .btn-success { background: #2e7d32; color: #fff; }
+        .btn-success:hover { background: #388e3c; transform: translateY(-1px); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .results {
+            display: none;
+            margin-top: 30px;
+            padding: 30px;
+            border-radius: 8px;
+            background: #f5f5f5;
+            text-align: center;
+        }
+        .results.show { display: block; }
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1a237e, #3949ab);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 2.2em;
+            font-weight: 700;
+            line-height: 1.2;
+            box-shadow: 0 4px 16px rgba(26,35,126,0.3);
+        }
+        .score-circle span { font-size: 0.4em; font-weight: 400; opacity: 0.85; }
+        .email-section {
+            margin-top: 24px;
+            display: none;
+        }
+        .email-section.show { display: block; }
+        .email-section input[type="email"] {
+            padding: 12px 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            width: 300px;
+            max-width: 100%;
+            margin-right: 10px;
+        }
+        .email-section input[type="email"]:focus {
+            outline: none;
+            border-color: #1a237e;
+        }
+        .note {
+            margin-top: 16px;
+            font-size: 0.85em;
+            color: #888;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px 40px;
+            background: #fafafa;
+            border-top: 1px solid #e0e0e0;
+            font-size: 0.8em;
+            color: #999;
+        }
+        @media (max-width: 640px) {
+            body { padding: 10px; }
+            .header { padding: 24px 16px; }
+            .header h1 { font-size: 1.2em; }
+            .sub-header { flex-direction: column; gap: 4px; padding: 12px 16px; }
+            .content { padding: 16px; }
+            .question { padding: 14px; }
+            .btn { width: 100%; }
+            .email-section input[type="email"] { width: 100%; margin: 0 0 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Pre-Training Assessment</h1>
+        <div class="date">Corporate Governance, Money Laundering &amp; KYC Training for NBFCs</div>
+        <div class="date" style="margin-top:6px;">Date of Training: 23rd July 2026</div>
+        <div class="prepared-for">
+            Prepared for:
+            <strong>Vama Sundari Investments (Delhi) Private Limited<br>and HCL Capital Private Limited</strong>
+        </div>
+        <div class="prepared-for" style="margin-top:8px;">
+            Prepared by: <strong>Aumyaa Consulting Services LLP</strong>
+        </div>
+    </div>
+
+    <div class="sub-header">
+        <span>Total Questions: <strong>10</strong></span>
+        <span>Passing Score: <strong>7/10 (70%)</strong></span>
+        <span id="answered-count">Answered: <strong>0/10</strong></span>
+    </div>
+
+    <div class="content" id="assessment"></div>
+
+    <div class="footer">
+        &copy; 2026 Aumyaa Consulting Services LLP. All rights reserved.
+    </div>
+</div>
+
+<script>
+const questions = [
+    {
+        q: 'Which legislation provides the principal framework for preventing money laundering in India?',
+        options: ['Companies Act, 2013', 'FEMA, 1999', 'Prevention of Money Laundering Act (PMLA), 2002', 'SEBI Act, 1992'],
+        answer: 2
+    },
+    {
+        q: 'Who is primarily responsible for overall compliance with Chapter IV of the PMLA?',
+        options: ['Internal Auditor', 'Chief Financial Officer', 'Designated Director', 'Company Secretary'],
+        answer: 2
+    },
+    {
+        q: 'What is the key purpose of KYC?',
+        options: ['Increase lending volumes', 'Prevent money laundering and identify customers', 'Improve profitability', 'Reduce taxation'],
+        answer: 1
+    },
+    {
+        q: 'STR stands for:',
+        options: ['Standard Transaction Report', 'Suspicious Transaction Report', 'Systematic Transaction Review', 'Statutory Transaction Register'],
+        answer: 1
+    },
+    {
+        q: 'Cash transactions exceeding what amount are reportable under PMLA requirements?',
+        options: ['₹5 lakh', '₹7 lakh', '₹10 lakh', '₹25 lakh'],
+        answer: 2
+    },
+    {
+        q: 'What does "Malus" mean in compensation practices?',
+        options: ['Recovery of bonus already paid', 'Reduction or cancellation of deferred remuneration before vesting/payment', 'Increment in salary', 'Performance-linked incentive'],
+        answer: 1
+    },
+    {
+        q: 'How often should ML/TF risk assessments be reviewed at a minimum?',
+        options: ['Monthly', 'Quarterly', 'Annually', 'Once every three years'],
+        answer: 2
+    },
+    {
+        q: 'Under the Draft RBI Governance Directions, 2026, which control functions are specifically recognized?',
+        options: ['Finance and Treasury', 'Compliance, Risk Management, and Internal Audit', 'Operations and HR', 'Marketing and Business Development'],
+        answer: 1
+    },
+    {
+        q: 'Under the proposed Draft Directions, CCO, CRO, and HIA should meet the Board/Audit Committee:',
+        options: ['Once a year', 'Half-yearly', 'Quarterly without senior management present', 'Only when requested'],
+        answer: 2
+    },
+    {
+        q: 'What is the objective of customer risk categorization?',
+        options: ['Determine pricing only', 'Classify customers based on ML/TF risk and apply appropriate due diligence', 'Increase customer onboarding speed', 'Reduce documentation requirements'],
+        answer: 1
+    }
+];
+
+let submitted = false;
+let userAnswers = new Array(questions.length).fill(null);
+
+const assessmentEl = document.getElementById('assessment');
+
+function render() {
+    let html = '';
+    questions.forEach((q, i) => {
+        const selected = userAnswers[i];
+        html += `<div class="question" id="q-${i}">
+            <div class="q-number">Question ${i + 1} of ${questions.length}</div>
+            <div class="q-text">${q.q}</div>
+            <div class="options">`;
+        q.options.forEach((opt, oi) => {
+            const checked = selected === oi ? 'checked' : '';
+            const selectedClass = selected === oi ? 'selected' : '';
+            const letter = String.fromCharCode(65 + oi);
+            html += `<label class="${selectedClass}">
+                <input type="radio" name="q${i}" value="${oi}" ${checked} ${submitted ? 'disabled' : ''} onchange="selectAnswer(${i}, ${oi})">
+                <span>${letter}. ${opt}</span>
+            </label>`;
+        });
+        html += `</div>
+            <div class="feedback correct-fb">✓ Correct! ${q.options[q.answer]}</div>
+            <div class="feedback incorrect-fb">✗ Incorrect. Correct answer: ${q.options[q.answer]}</div>
+            <div class="feedback unanswered-fb">⚠ Not answered. Correct answer: ${q.options[q.answer]}</div>
+        </div>`;
+    });
+
+    let btnHtml = `<div class="actions">`;
+    if (!submitted) {
+        btnHtml += `<button class="btn btn-primary" onclick="submitQuiz()">Submit Assessment</button>`;
+    } else {
+        btnHtml += `<button class="btn btn-secondary" onclick="resetQuiz()">Retake Assessment</button>`;
+    }
+    btnHtml += `</div>`;
+
+    let resultsHtml = `<div class="results" id="results"></div>`;
+
+    html = html + btnHtml + resultsHtml;
+    assessmentEl.innerHTML = html;
+
+    updateAnsweredCount();
+    if (submitted) showResults();
+}
+
+function selectAnswer(i, val) {
+    if (submitted) return;
+    userAnswers[i] = val;
+    const labels = document.querySelectorAll(`#q-${i} .options label`);
+    labels.forEach((l, idx) => {
+        l.classList.toggle('selected', idx === val);
+    });
+    updateAnsweredCount();
+}
+
+function updateAnsweredCount() {
+    const count = userAnswers.filter(a => a !== null).length;
+    document.getElementById('answered-count').innerHTML = `Answered: <strong>${count}/${questions.length}</strong>`;
+}
+
+function submitQuiz() {
+    const unanswered = userAnswers.some(a => a === null);
+    if (unanswered) {
+        if (!confirm('You have unanswered questions. Are you sure you want to submit?')) return;
+    }
+    submitted = true;
+
+    let score = 0;
+    questions.forEach((q, i) => {
+        const el = document.getElementById(`q-${i}`);
+        const ans = userAnswers[i];
+        const isCorrect = ans === q.answer;
+
+        el.classList.remove('correct', 'incorrect', 'unanswered');
+        if (ans === null) {
+            el.classList.add('unanswered');
+        } else if (isCorrect) {
+            el.classList.add('correct');
+            score++;
+        } else {
+            el.classList.add('incorrect');
+        }
+
+        const radios = el.querySelectorAll('input[type="radio"]');
+        radios.forEach(r => r.disabled = true);
+
+        const labels = el.querySelectorAll('.options label');
+        labels.forEach((l, idx) => {
+            if (idx === q.answer) {
+                l.style.borderColor = '#43a047';
+                l.style.background = '#e8f5e9';
+            }
+        });
+    });
+
+    render();
+    showResults(score);
+}
+
+function showResults(score) {
+    const resultsEl = document.getElementById('results');
+    if (!resultsEl) return;
+    if (score === undefined) {
+        score = 0;
+        questions.forEach((q, i) => {
+            if (userAnswers[i] === q.answer) score++;
+        });
+    }
+    const total = questions.length;
+    const pct = Math.round((score / total) * 100);
+    const passed = score >= 7;
+
+    let emailBody = `Pre-Training Assessment Results\n`;
+    emailBody += `================================\n`;
+    emailBody += `Date: 23rd July 2026\n`;
+    emailBody += `Training: Corporate Governance, Money Laundering & KYC Training for NBFCs\n`;
+    emailBody += `Prepared for: Vama Sundari Investments (Delhi) Private Limited and HCL Capital Private Limited\n`;
+    emailBody += `Prepared by: Aumyaa Consulting Services LLP\n\n`;
+    emailBody += `Score: ${score}/${total} (${pct}%)\n`;
+    emailBody += `Result: ${passed ? 'PASSED' : 'FAILED'}\n\n`;
+    emailBody += `Question-wise Breakdown:\n`;
+    emailBody += `------------------------\n`;
+    questions.forEach((q, i) => {
+        const ans = userAnswers[i];
+        const isCorrect = ans === q.answer;
+        const status = ans === null ? 'Not Answered' : (isCorrect ? 'Correct' : 'Incorrect');
+        const userAnsText = ans !== null ? q.options[ans] : '—';
+        emailBody += `\nQ${i+1}. ${status}\n`;
+        emailBody += `   Your answer: ${userAnsText}\n`;
+        emailBody += `   Correct answer: ${q.options[q.answer]}\n`;
+    });
+    emailBody += `\n------------------------\n`;
+    emailBody += `Assessment completed on: ${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+
+    const encodedBody = encodeURIComponent(emailBody);
+
+    resultsEl.className = 'results show';
+    resultsEl.innerHTML = `
+        <div class="score-circle">${score}<span>/ ${total}</span></div>
+        <h2 style="margin-bottom:6px;">${passed ? 'Congratulations!' : 'Needs Improvement'}</h2>
+        <p style="margin-bottom:4px;font-size:1.1em;">You scored <strong>${score}/${total}</strong> (${pct}%)</p>
+        <p style="margin-bottom:20px;font-size:0.95em;color:#666;">
+            ${passed ? 'You have passed the pre-training assessment.' : 'A score of 7/10 (70%) is required to pass.'}
+        </p>
+        <div class="email-section show">
+            <p style="margin-bottom:12px;font-weight:600;">Email Your Results</p>
+            <a href="mailto:?subject=${encodeURIComponent('Pre-Training Assessment Results – Pre, 23 July 2026')}&body=${encodedBody}" class="btn btn-success">Send Results via Email</a>
+            <div class="note">Clicking above will open your default email client with results pre-filled.</div>
+        </div>
+    `;
+}
+
+function resetQuiz() {
+    submitted = false;
+    userAnswers = new Array(questions.length).fill(null);
+    render();
+}
+
+render();
+</script>
+
+</body>
+</html>

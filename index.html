@@ -500,6 +500,15 @@ function sendEmail(score, pct, level) {
         training_date: '23rd July 2026'
     };
 
+    console.log('EmailJS userDetails:', userDetails);
+    console.log('EmailJS templateParams:', templateParams);
+
+    if (!userDetails.email) {
+        statusEl.className = 'email-status error';
+        statusEl.textContent = 'Email address is missing. Please retake the assessment and enter your email.';
+        return;
+    }
+
     statusEl.className = 'email-status sending';
     statusEl.textContent = 'Sending email...';
 

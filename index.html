@@ -165,6 +165,7 @@
         .btn-secondary:hover { background: #bdbdbd; }
         .btn-success { background: #2e7d32; color: #fff; }
         .btn-success:hover { background: #388e3c; transform: translateY(-1px); }
+        .status-row { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
         .results {
             display: none;
@@ -336,7 +337,6 @@ function render() {
     assessmentEl.innerHTML = html;
 
     updateAnsweredCount();
-    if (submitted) showResults();
 }
 
 function selectAnswer(i, val) {
@@ -468,24 +468,29 @@ function showResults(score) {
         <p style="margin-bottom:20px;font-size:0.95em;color:#666;">
             ${passed ? 'You have passed the pre-training assessment.' : 'A score of 7/10 (70%) is required to pass.'}
         </p>
-        <div class="email-section show">
-            <p style="margin-bottom:12px;font-weight:600;">Email Your Results</p>
-            <button class="btn btn-success" onclick="sendEmail(${score}, ${pct}, '${level}')">Send Results via Email</button>
-            <div class="email-status" id="email-status"></div>
-            <div class="note" style="margin-top:12px;font-size:0.85em;color:#888;">
-                Results will be sent via EmailJS to the email address you provided.
-            </div>
+        <div class="status-row">
+            <div class="email-status" id="email-status">Sending email...</div>
+            <div class="email-status" id="gh-status">Creating GitHub issue...</div>
         </div>
     `;
+
+    sendEmail(score, pct, level);
+    createGitHubIssue(score, pct, level);
 }
 
 function sendEmail(score, pct, level) {
     const statusEl = document.getElementById('email-status');
     const total = questions.length;
 
+    if (!userDetails.email) {
+        statusEl.className = 'email-status error';
+        statusEl.textContent = 'Email not sent — email address missing.';
+        return;
+    }
+
     const { topic_summary, concerns } = buildTopicSummary();
 
-    const templateParams = {
+    emailjs.send('service_clu2ken', 'template_2jejcow', {
         to_name: userDetails.name,
         to_email: userDetails.email,
         role: userDetails.role,
@@ -498,30 +503,84 @@ function sendEmail(score, pct, level) {
         topic_summary: topic_summary,
         concerns: concerns,
         training_date: '23rd July 2026'
-    };
-
-    console.log('EmailJS userDetails:', userDetails);
-    console.log('EmailJS templateParams:', templateParams);
-
-    if (!userDetails.email) {
+    })
+    .then(() => {
+        statusEl.className = 'email-status success';
+        statusEl.textContent = 'Email sent successfully to ' + userDetails.email;
+    })
+    .catch((err) => {
         statusEl.className = 'email-status error';
-        statusEl.textContent = 'Email address is missing. Please retake the assessment and enter your email.';
-        return;
+        statusEl.textContent = 'Email failed: ' + (err.text || err.message || 'Unknown');
+        console.error('EmailJS error:', err);
+    });
+}
+
+function buildIssueBody(score, pct, level) {
+    const total = questions.length;
+    const passed = score >= 7;
+    let body = `## Pre-Training Assessment Result\n\n`;
+    body += `**Participant:** ${userDetails.name}\n`;
+    body += `**Designation:** ${userDetails.role}\n`;
+    body += `**Organisation:** ${userDetails.company}\n`;
+    body += `**Email:** ${userDetails.email}\n`;
+    body += `**Date:** 23rd July 2026\n\n`;
+    body += `### Score: ${score}/${total} (${pct}%)\n`;
+    body += `**Readiness Level:** ${level}\n`;
+    body += `**Result:** ${passed ? 'PASSED' : 'FAILED'}\n\n`;
+    body += `### Topic-wise Breakdown\n\n`;
+    body += '| Topic | Score |\n';
+    body += '|-------|-------|\n';
+    const topics = {};
+    questions.forEach((q, i) => {
+        if (!topics[q.topic]) topics[q.topic] = { correct: 0, total: 0 };
+        topics[q.topic].total++;
+        if (userAnswers[i] === q.answer) topics[q.topic].correct++;
+    });
+    for (const [topic, data] of Object.entries(topics)) {
+        body += `| ${topic} | ${data.correct}/${data.total} |\n`;
     }
+    body += `\n### Question Details\n\n`;
+    questions.forEach((q, i) => {
+        const ans = userAnswers[i];
+        const isCorrect = ans === q.answer;
+        const status = ans === null ? 'Not Answered' : (isCorrect ? 'Correct' : 'Incorrect');
+        const userAnsText = ans !== null ? q.options[ans] : '—';
+        body += `**Q${i+1}** (${q.topic}): ${status}\n`;
+        body += `- Your answer: ${userAnsText}\n`;
+        body += `- Correct answer: ${q.options[q.answer]}\n\n`;
+    });
+    return body;
+}
 
-    statusEl.className = 'email-status sending';
-    statusEl.textContent = 'Sending email...';
+function createGitHubIssue(score, pct, level) {
+    const statusEl = document.getElementById('gh-status');
+    const token = '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';
 
-    emailjs.send('service_clu2ken', 'template_2jejcow', templateParams)
-        .then(() => {
-            statusEl.className = 'email-status success';
-            statusEl.textContent = 'Email sent successfully! Check your inbox.';
-        })
-        .catch((err) => {
-            statusEl.className = 'email-status error';
-            statusEl.textContent = 'Failed to send email. Please try again or contact support. Error: ' + (err.text || err.message || 'Unknown');
-            console.error('EmailJS error:', err);
-        });
+    const title = `Assessment Result – ${userDetails.name} (${score}/${questions.length})`;
+    const body = buildIssueBody(score, pct, level);
+
+    fetch('https://api.github.com/repos/ANGELF1RE/pre/issues', {
+        method: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + token,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ title: title, body: body })
+    })
+    .then(res => {
+        if (!res.ok) return res.json().then(e => { throw new Error(e.message || 'HTTP ' + res.status); });
+        return res.json();
+    })
+    .then(data => {
+        statusEl.className = 'email-status success';
+        statusEl.textContent = 'GitHub issue created: ' + data.html_url;
+    })
+    .catch(err => {
+        statusEl.className = 'email-status error';
+        statusEl.textContent = 'GitHub issue failed: ' + err.message;
+        console.error('GitHub issue error:', err);
+    });
 }
 
 function resetQuiz() {
